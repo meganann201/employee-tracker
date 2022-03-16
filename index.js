@@ -1,6 +1,15 @@
 const inquirer = require("inquirer");
 const db = require("./db/connection.js");
 const cTable = require("console.table");
+
+const validateDecimalInput = (input) => {
+  if (!/^\d+$/.test(input)) {
+    return "Please enter only numeric characters";
+  } else {
+    return true;
+  }
+};
+
 async function toDo() {
   inquirer
     .prompt([
@@ -78,4 +87,158 @@ const selectAllRoles = () => {
 //view all employees
 const selectAllEmployees = () => {
   return db.promise().execute("SELECT * FROM employees;");
+};
+
+// add department to db
+const addDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "deptName",
+        message: "What is the name of the department?",
+      },
+    ])
+    .then((answers) => {
+      const queryResults = db.query(
+        `INSERT INTO departments (name) VALUES (?);`,
+        answers.deptName,
+        (err, results, fields) => {
+          if (err) {
+            console.log(
+              `There was an error adding ${answers.deptName} to the database!`
+            );
+          } else {
+            console.log(
+              `${answers.deptName} was added to the database with ID ${results.insertId}`
+            );
+          }
+        }
+      );
+      wantToExit();
+    })
+    .catch((error) => {
+      console.log(
+        `There was an error adding ${answers.deptName} to the database!`
+      );
+    });
+};
+
+// add role to db
+const addRole = () => {
+  selectAllDepartments().then(([rows, fields]) => {
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "roleName",
+          message: "What is the name of the role?",
+        },
+        {
+          type: "input",
+          name: "salary",
+          message: "What is the salary of the role?",
+          validate: validateDecimalInput,
+        },
+        {
+          type: "list",
+          name: "deptRole",
+          message: "What department does the role belong to?",
+          choices: rows.map((r) => {
+            return { name: r.name, value: r.id };
+          }),
+        },
+      ])
+      .then((answers) => {
+        const queryResults = db.query(
+          `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);`,
+          [answers.roleName, answers.salary, answers.deptRole],
+          (err, results, fields) => {
+            if (err) {
+              console.log(
+                `There was an error adding ${answers.roleName} to the database!`
+              );
+            } else {
+              console.log(
+                `${answers.roleName} was added to the database with ID ${results.insertId}`
+              );
+            }
+          }
+        );
+        wantToExit();
+      })
+      .catch((error) => {
+        console.log(
+          `There was an error adding ${answers.roleName} to the database!`
+        );
+      });
+  });
+};
+
+// add an employee to db
+const addEmployee = () => {
+  Promise.all([selectAllRoles(), selectAllEmployees()]).then(
+    ([roles, employees]) => {
+      const [roleRows] = roles;
+      const [employeeRows] = employees;
+
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "firstName",
+            message: "What is their first name?",
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "What is their last name?",
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "What is their role?",
+            choices: roleRows.map((r) => {
+              return { name: r.title, value: r.id };
+            }),
+          },
+          {
+            type: "list",
+            name: "manager",
+            message: "Who is their manager?",
+            choices: employeeRows.map((r) => {
+              return { name: `${r.first_name} ${r.last_name}`, value: r.id };
+            }),
+          },
+        ])
+        .then((answers) => {
+          const queryResults = db.query(
+            `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
+            [
+              answers.firstName,
+              answers.lastName,
+              answers.role,
+              answers.manager,
+            ],
+            (err, results, fields) => {
+              if (err) {
+                console.log(
+                  `There was an error adding ${answers.firstName} to the database!`
+                );
+              } else {
+                console.log(
+                  `${answers.firstName} was added to the database with ID ${results.insertId}`
+                );
+              }
+            }
+          );
+          wantToExit();
+        })
+        .catch((error) => {
+          console.log(
+            "There was an error adding the employee to the database!"
+          );
+        });
+    }
+  );
 };
