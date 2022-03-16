@@ -65,3 +65,17 @@ async function toDo() {
       }
     });
 }
+// view all departments
+const selectAllDepartments = () => {
+  return db.promise().execute("SELECT * FROM departments;");
+};
+
+// view all roles
+const selectAllRoles = () => {
+  return db.promise().execute("SELECT * FROM roles;");
+};
+
+//view all employees
+const selectAllEmployees = () => {
+  return db.promise().execute("SELECT * FROM employees;");
+};
