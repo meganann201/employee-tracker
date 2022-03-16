@@ -14,11 +14,11 @@ VALUES
 ('Accountant', 65000, 3),
 ('Digital Creator', 40000, 4);
 
-INSERT INTO employees (first_name, last_name, role_id)
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES
-('Megan', 'Campbell', 3),
-('Eric', 'Rochford', 3),
-('Ranger', 'Robert', 1),
-('Sam', 'Smith', 4),
-('Ryan', 'Reynolds', 5),
-('Amy', 'Joe', 2);
+('Megan', 'Campbell', 3, 3),
+('Eric', 'Rochford', 3, 1),
+('Ranger', 'Robert', 1, 4),
+('Sam', 'Smith', 4, 1),
+('Ryan', 'Reynolds', 5, 1),
+('Amy', 'Joe', 2, 1);
