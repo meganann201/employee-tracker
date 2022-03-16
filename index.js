@@ -242,3 +242,114 @@ const addEmployee = () => {
     }
   );
 };
+
+// update an employee
+const updateEmployee = () => {
+  Promise.all([selectAllRoles(), selectAllEmployees()]).then(
+    ([roles, employees]) => {
+      const [roleRows] = roles;
+      const [employeeRows] = employees;
+
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "name",
+            message: "Which employee's role do you want to update?",
+            choices: employeeRows.map((r) => {
+              return { name: `${r.first_name} ${r.last_name}`, value: r.id };
+            }),
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "What is the employee's role?",
+            choices: roleRows.map((r) => {
+              return { name: r.title, value: r.id };
+            }),
+          },
+        ])
+        .then((answers) => {
+          const queryResults = db.query(
+            `UPDATE employees
+                  SET role_id = ${answers.role}
+                  WHERE id = ${answers.name};`,
+            (err, results, fields) => {
+              if (err) {
+                console.log(`There was an error updating ${answers.name}.`);
+              } else {
+                console.log("The employee's role was updated.");
+              }
+            }
+          );
+          wantToExit();
+        })
+        .catch((error) => {
+          console.log(
+            "There was an error updating the employee in the database!"
+          );
+        });
+    }
+  );
+};
+
+// delete an employee
+const deleteEmployee = () => {
+  Promise.all([selectAllRoles(), selectAllEmployees()]).then(
+    ([roles, employees]) => {
+      const [roleRows] = roles;
+      const [employeeRows] = employees;
+
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "name",
+            message: "Which employee do you want to delete?",
+            choices: employeeRows.map((r) => {
+              return { name: `${r.first_name} ${r.last_name}`, value: r.id };
+            }),
+          },
+        ])
+        .then((answers) => {
+          const queryResults = db.query(
+            `DELETE FROM employees
+                   WHERE id = ${answers.name};`,
+            (err, results, fields) => {
+              if (err) {
+                console.log(`There was an error deleting ${answers.name}.`);
+              } else {
+                console.log("The employee was deleted.");
+              }
+            }
+          );
+          wantToExit();
+        })
+        .catch((error) => {
+          console.log(
+            "There was an error deleting the employee in the database!"
+          );
+        });
+    }
+  );
+};
+
+const wantToExit = () =>
+  inquirer
+    .prompt([
+      {
+        name: "moreQuery",
+        type: "confirm",
+        message: "Want to do anything else?",
+      },
+    ])
+    .then((answer) => {
+      if (answer.moreQuery) {
+        return toDo();
+      } else {
+        process.exit();
+      }
+    } 
+    );
+
+toDo();
